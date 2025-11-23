@@ -8,6 +8,6 @@ use clap::Parser;
 fn main() -> Result<()> {
     match Cli::parse() {
         Cli::Start(cli) => command::start("origin", "main", &cli.new_branch),
-        Cli::Done => command::done(),
+        Cli::Done => command::done("main"),
     }
 }

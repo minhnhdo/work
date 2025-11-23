@@ -1,17 +1,22 @@
 use crate::command::common;
 use anyhow::{anyhow, Result};
 
-pub fn done() -> Result<()> {
+const CURRENT_BRANCH_PREFIX: char = '*';
+
+pub fn done(default_branch: &str) -> Result<()> {
+    common::ensure_working_directory_is_clean()?;
+
     let git_branch_output = String::from_utf8(common::execute("git", &["branch"])?)?;
     let current_branch = git_branch_output
         .split('\n')
-        .find(|line| line.starts_with("*"))
-        .ok_or(anyhow!("Failed to find active branch"))?
-        .strip_prefix('*')
-        .ok_or(anyhow!("Failed to strip active branch prefix"))?
+        .find(|line| line.starts_with(CURRENT_BRANCH_PREFIX))
+        .ok_or(anyhow!("failed to find current branch"))?
+        .strip_prefix(CURRENT_BRANCH_PREFIX)
+        .ok_or(anyhow!("failed to strip current branch prefix"))?
         .trim();
 
-    println!("Active branch: {current_branch}");
+    common::execute("git", &["checkout", default_branch])?;
+    common::execute("git", &["branch", "-D", current_branch])?;
 
     Ok(())
 }

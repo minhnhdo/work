@@ -7,7 +7,7 @@ use clap::Parser;
 
 fn main() -> Result<()> {
     match Cli::parse() {
-        Cli::Start => command::start(),
+        Cli::Start(cli) => command::start("origin", "main", &cli.new_branch),
         Cli::Done => command::done(),
     }
 }

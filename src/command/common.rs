@@ -1,6 +1,9 @@
 use anyhow::{anyhow, Result};
 use std::process::Command;
 
+const DEFAULT_BRANCH_MAIN: &str = "main";
+const DEFAULT_BRANCH_MASTER: &str = "master";
+
 pub fn execute(program: &str, args: &[&str]) -> Result<Vec<u8>> {
     match Command::new(program).args(args).output() {
         Ok(output) if output.status.success() => Ok(output.stdout),
@@ -22,4 +25,19 @@ pub fn ensure_working_directory_is_clean() -> Result<()> {
         return Err(anyhow!("working directory is not clean"));
     }
     Ok(())
+}
+
+pub fn get_default_branch() -> Result<&'static str> {
+    let git_branch_output = String::from_utf8(execute("git", &["branch"])?)?;
+    let branches = git_branch_output
+        .split('\n')
+        .map(|line| line.trim())
+        .collect::<Vec<_>>();
+    if branches.contains(&DEFAULT_BRANCH_MASTER) {
+        return Ok(DEFAULT_BRANCH_MASTER);
+    }
+    if branches.contains(&DEFAULT_BRANCH_MAIN) {
+        return Ok(DEFAULT_BRANCH_MAIN);
+    }
+    Err(anyhow!("no default branch found"))
 }

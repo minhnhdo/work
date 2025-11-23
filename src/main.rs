@@ -1,14 +1,42 @@
-mod cli;
 mod command;
 
-use crate::cli::Cli;
 use anyhow::Result;
-use clap::Parser;
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "work")]
+struct Cli {
+    #[clap(subcommand)]
+    sub_command: SubCommand,
+}
+
+#[derive(Subcommand)]
+enum SubCommand {
+    #[command(arg_required_else_help = true)]
+    Start {
+        #[arg(long)]
+        remote: Option<String>,
+        new_branch: String,
+    },
+    Done,
+}
 
 fn main() -> Result<()> {
-    let default_branch = command::common::get_default_branch()?;
     match Cli::parse() {
-        Cli::Start(cli) => command::start("origin", default_branch, &cli.new_branch),
-        Cli::Done => command::done(default_branch),
+        Cli {
+            sub_command: SubCommand::Start { remote, new_branch },
+        } => {
+            let remote = remote
+                .ok_or_else(|| ())
+                .or_else(|_| command::common::get_remote())?;
+            let default_branch = command::common::get_default_branch()?;
+            command::start(remote, default_branch, new_branch)
+        }
+        Cli {
+            sub_command: SubCommand::Done,
+        } => {
+            let default_branch = command::common::get_default_branch()?;
+            command::done(default_branch)
+        }
     }
 }

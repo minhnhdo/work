@@ -15,3 +15,11 @@ pub fn execute(program: &str, args: &[&str]) -> Result<Vec<u8>> {
         )),
     }
 }
+
+pub fn ensure_working_directory_is_clean() -> Result<()> {
+    let git_status_output = String::from_utf8(execute("git", &["status", "--porcelain"])?)?;
+    if !git_status_output.trim().is_empty() {
+        return Err(anyhow!("working directory is not clean"));
+    }
+    Ok(())
+}

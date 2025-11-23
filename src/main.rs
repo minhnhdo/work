@@ -14,28 +14,42 @@ struct Cli {
 enum SubCommand {
     #[command(arg_required_else_help = true)]
     Start {
-        #[arg(long)]
+        #[arg(long, help = "remote to use, defaults to upstream or origin")]
         remote: Option<String>,
+        #[arg(long, help = "default branch to use, defaults to main or master")]
+        default_branch: Option<String>,
         new_branch: String,
     },
-    Done,
+    Done {
+        #[arg(long, help = "default branch to use, defaults to main or master")]
+        default_branch: Option<String>,
+    },
 }
 
 fn main() -> Result<()> {
     match Cli::parse() {
         Cli {
-            sub_command: SubCommand::Start { remote, new_branch },
+            sub_command:
+                SubCommand::Start {
+                    remote,
+                    default_branch,
+                    new_branch,
+                },
         } => {
             let remote = remote
                 .ok_or_else(|| ())
                 .or_else(|_| command::common::get_remote())?;
-            let default_branch = command::common::get_default_branch()?;
+            let default_branch = default_branch
+                .ok_or_else(|| ())
+                .or_else(|_| command::common::get_default_branch())?;
             command::start(remote, default_branch, new_branch)
         }
         Cli {
-            sub_command: SubCommand::Done,
+            sub_command: SubCommand::Done { default_branch },
         } => {
-            let default_branch = command::common::get_default_branch()?;
+            let default_branch = default_branch
+                .ok_or_else(|| ())
+                .or_else(|_| command::common::get_default_branch())?;
             command::done(default_branch)
         }
     }

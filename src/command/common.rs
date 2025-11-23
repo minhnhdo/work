@@ -30,17 +30,17 @@ pub fn ensure_working_directory_is_clean() -> Result<()> {
     Ok(())
 }
 
-pub fn get_default_branch() -> Result<&'static str> {
+pub fn get_default_branch() -> Result<String> {
     let git_branch_output = String::from_utf8(execute("git", &["branch"])?)?;
     let branches = git_branch_output
         .split('\n')
         .map(|line| line.trim())
         .collect::<Vec<_>>();
     if branches.contains(&DEFAULT_BRANCH_MASTER) {
-        return Ok(DEFAULT_BRANCH_MASTER);
+        return Ok(DEFAULT_BRANCH_MASTER.to_string());
     }
     if branches.contains(&DEFAULT_BRANCH_MAIN) {
-        return Ok(DEFAULT_BRANCH_MAIN);
+        return Ok(DEFAULT_BRANCH_MAIN.to_string());
     }
     Err(anyhow!("no default branch found"))
 }

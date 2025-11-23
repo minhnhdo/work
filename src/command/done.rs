@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 
 const CURRENT_BRANCH_PREFIX: char = '*';
 
-pub fn done(default_branch: &str) -> Result<()> {
+pub fn done<DefaultBranch: AsRef<str>>(default_branch: DefaultBranch) -> Result<()> {
     common::ensure_working_directory_is_clean()?;
 
     let git_branch_output = String::from_utf8(common::execute("git", &["branch"])?)?;
@@ -15,7 +15,7 @@ pub fn done(default_branch: &str) -> Result<()> {
         .ok_or(anyhow!("failed to strip current branch prefix"))?
         .trim();
 
-    common::execute("git", &["checkout", default_branch])?;
+    common::execute("git", &["checkout", default_branch.as_ref()])?;
     common::execute("git", &["branch", "-D", current_branch])?;
 
     Ok(())

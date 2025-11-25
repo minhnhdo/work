@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Result};
 use std::process::Command;
 
+const CURRENT_BRANCH_PREFIX: &str = "* ";
+
 const DEFAULT_BRANCH_MAIN: &str = "main";
 const DEFAULT_BRANCH_MASTER: &str = "master";
 
@@ -34,7 +36,11 @@ pub fn get_default_branch() -> Result<String> {
     let git_branch_output = String::from_utf8(execute("git", &["branch"])?)?;
     let branches = git_branch_output
         .split('\n')
-        .map(|line| line.trim())
+        .map(|line| {
+            line.strip_prefix(CURRENT_BRANCH_PREFIX)
+                .unwrap_or(line)
+                .trim()
+        })
         .collect::<Vec<_>>();
     if branches.contains(&DEFAULT_BRANCH_MASTER) {
         return Ok(DEFAULT_BRANCH_MASTER.to_string());
